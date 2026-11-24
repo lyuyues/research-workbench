@@ -4,6 +4,14 @@ A self-hosted web workbench for one researcher (typically a PhD student) and a C
 inside your research folder. Plain markdown files stay the source of truth; the web UI reads them, and the
 agent edits them when you ask. Every agent change is journaled in git, so you can undo it from the chat.
 
+![Today: tasks, habits, notes to and from the agent, timeline](docs/screenshots/today.png)
+
+| Projects | Story canvas | Meetings |
+|---|---|---|
+| ![Projects](docs/screenshots/projects.png) | ![Story canvas](docs/screenshots/story.png) | ![Meetings](docs/screenshots/meetings.png) |
+
+*Screenshots use a made-up demo workspace.*
+
 ## What you get
 
 | Panel | Reads / writes | What it is for |
