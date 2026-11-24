@@ -1,0 +1,10 @@
+{
+ "version": 1,
+ "title": "Sleep story",
+ "items": [
+  {"id": "claim", "kind": "section", "x": 0, "y": 0, "w": 520, "h": 300, "text": "**C1** Evening phone use delays bedtime on the same night", "color": "flow"},
+  {"id": "e1", "kind": "card", "x": 20, "y": 30, "w": 220, "h": 84, "text": "Pilot: 3/3 participants later bedtime on high-use nights", "color": "support"},
+  {"id": "g1", "kind": "card", "x": 270, "y": 30, "w": 220, "h": 84, "text": "⚠ Gap: no weekend vs weekday split yet", "color": "gap"},
+  {"id": "r1", "kind": "card", "x": 20, "y": 150, "w": 470, "h": 84, "text": "❓ Reviewer: is it the phone, or does going to bed late cause more phone use?", "color": "reviewer"}
+ ]
+}

@@ -1,0 +1,74 @@
+/* Story canvas. Colours derive from the app's tokens (index.css) plus a few card tints. */
+.story {
+  --sc-support: #e3f4e8; --sc-support-ink: #1d6b3a;
+  --sc-counter: #fbe4e6; --sc-counter-ink: #a3263a;
+  --sc-caveat: #fdf0dc; --sc-caveat-ink: #96590b;
+  --sc-gap: #c2571a; --sc-reviewer: #6d3fc0;
+  --sc-flow: #e6edfb;
+  display: flex; flex-direction: column; gap: 8px; min-height: 0; height: calc(100dvh - 120px);
+}
+@media (prefers-color-scheme: dark) {
+  .story {
+    --sc-support: #17301f; --sc-support-ink: #7fd69b;
+    --sc-counter: #3a1c22; --sc-counter-ink: #f3a3b0;
+    --sc-caveat: #362a14; --sc-caveat-ink: #f0c27a;
+    --sc-gap: #f08a4b; --sc-reviewer: #b39af0;
+    --sc-flow: #1c2740;
+  }
+}
+.story.full { position: fixed; inset: 0; z-index: 50; height: 100dvh; padding: 10px 12px; box-sizing: border-box; background: var(--bg); }
+/* keep the agent column (desktop) / the agent drawer + its button (narrow screens, z 10–11) usable */
+.story.full.with-agent { right: var(--agent-w, 380px); z-index: 9; border-right: 1px solid var(--line); }
+@media (max-width: 900px) { .story.full.with-agent { right: 0; border-right: 0; } }
+.story-bar { flex-wrap: wrap; align-items: center; }
+.story-bar .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.story-bar .seg button { border: 0; border-radius: 0; background: none; padding: 4px 10px; }
+.story-bar .seg button.on { background: var(--user); color: var(--accent); font-weight: 600; }
+.story-bar .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
+.story-bar .zoom { min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums; }
+.story .small { font-size: 12px; }
+.story-sel { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+
+.story-vp { flex: 1; min-height: 0; position: relative; overflow: hidden; touch-action: none; cursor: grab; border: 1px solid var(--line); border-radius: 10px;
+  background-color: var(--bg); background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 24px 24px; overscroll-behavior: contain; }
+.story-vp:active { cursor: grabbing; }
+.story-layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+.sc-section { position: absolute; border: 1.5px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 70%, transparent); }
+.sc-section.c-flow { background: color-mix(in srgb, var(--sc-flow) 45%, transparent); }
+.sc-section-title { position: absolute; left: 0; right: 0; top: -30px; padding: 0 4px; font-size: 18px; font-weight: 600; cursor: grab;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.sc-section.sel { border-color: var(--accent); }
+
+.sc-card, .sc-note { position: absolute; box-sizing: border-box; cursor: grab; touch-action: none; user-select: none; font-size: 13px; line-height: 1.45; color: var(--text); }
+.sc-card { padding: 8px 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 1px 2px rgb(0 0 0 / .06); }
+.sc-note { padding: 2px 4px; }
+.sc-card.c-support { background: var(--sc-support); border-color: transparent; }
+.sc-card.c-counter { background: var(--sc-counter); border-color: transparent; }
+.sc-card.c-caveat { background: var(--sc-caveat); border-color: transparent; }
+.sc-card.c-flow { background: var(--sc-flow); border-color: transparent; }
+.sc-card.c-gap { background: transparent; border: 1.5px dashed var(--sc-gap); box-shadow: none; }
+.sc-card.c-reviewer { background: transparent; border: 1.5px dashed var(--sc-reviewer); box-shadow: none; }
+.sc-card i { color: var(--muted); }
+.sc-card.c-support i { color: var(--sc-support-ink); } .sc-card.c-counter i { color: var(--sc-counter-ink); } .sc-card.c-caveat i { color: var(--sc-caveat-ink); }
+.sc-card code, .sc-note code { font-size: 12px; background: var(--tool); padding: 0 3px; border-radius: 3px; }
+.s-large { font-size: 22px; line-height: 1.3; } .s-title { font-size: 34px; font-weight: 700; line-height: 1.2; } .s-small { font-size: 12px; }
+.sc-card.sel, .sc-note.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sc-card:active, .sc-section-title:active { cursor: grabbing; }
+
+.sc-resize { position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px; cursor: nwse-resize; opacity: 0; }
+.sel > .sc-resize { opacity: 1; background: var(--accent); border-radius: 3px; }
+.sc-editor { display: block; width: 100%; min-height: 2.9em; box-sizing: border-box; font: inherit; line-height: inherit; color: var(--text); background: transparent; border: 0; outline: none; border-radius: 0; padding: 0; margin: 0; resize: none; overflow: hidden; cursor: text; user-select: text; }
+.sc-card:has(> .sc-editor), .sc-note:has(> .sc-editor) { outline: 2px solid var(--accent); outline-offset: 2px; cursor: text; }
+.sc-section > .sc-editor { position: absolute; top: -34px; left: 0; width: min(100%, 520px); min-height: 60px; z-index: 3; background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; padding: 4px 6px; }
+
+.sc-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.sc-arrows line { stroke: var(--muted); stroke-width: 1.6; }
+.sc-arrows marker path { fill: var(--muted); }
+
+/* pictures dropped or pasted on the board */
+.sc-image { position: absolute; box-sizing: border-box; cursor: grab; touch-action: none; user-select: none; font-size: 13px; line-height: 1.45; color: var(--text); }
+.sc-image img { display: block; width: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 1px 3px rgb(0 0 0 / .15); background: var(--panel); pointer-events: none; }
+.sc-image .sc-caption, .sc-image .sc-editor { margin-top: 4px; }
+.sc-image.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.story-vp.dropping { box-shadow: inset 0 0 0 3px var(--accent); }

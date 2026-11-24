@@ -1,0 +1,16 @@
+PANELS: list[dict] = [
+    {"id": "today", "ready": True, "title": "Today", "phase": 2},
+    {"id": "projects", "ready": True, "title": "Projects", "phase": 2},
+    {"id": "literature", "ready": True, "title": "LitRadar", "phase": 3},
+    {"id": "trends", "ready": True, "title": "Trends", "phase": 3},
+    {"id": "reading", "ready": True, "title": "Reading", "phase": 3},
+    {"id": "books", "ready": True, "title": "Books", "phase": 3},
+    {"id": "audiobooks", "ready": True, "title": "Audiobooks", "phase": 3},
+    {"id": "annotations", "ready": True, "title": "Annotations", "phase": 2},
+    {"id": "story", "title": "Story", "phase": 4, "ready": True},
+    {"id": "writing", "ready": True, "title": "Writing", "phase": 4},
+    {"id": "meetings", "ready": True, "title": "Meetings", "phase": 3},
+    {"id": "weekly", "ready": True, "title": "Weekly / Time", "phase": 3},
+    {"id": "automation", "title": "Automation", "phase": 2, "ready": True},
+    {"id": "log", "title": "System log", "phase": 1, "ready": True},
+]

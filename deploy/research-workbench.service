@@ -1,0 +1,13 @@
+[Unit]
+Description=Research Workbench
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/research-workbench
+EnvironmentFile=%h/.config/research-workbench/env
+ExecStart=%h/research-workbench/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000 --workers 1
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

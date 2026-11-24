@@ -1,0 +1,7 @@
+# The projects Research Workbench knows about. Ask the agent "set up my workspace" to generate this for your folder.
+projects:
+  - name: Sleep
+    code: S                  # task IDs: S-1.1, S-MEET0108-1
+    title: Sleep and screen time in teenagers
+    paper: Sleep/paper       # the draft: Sleep/paper/texfiles/*.tex
+    # data: ~/studies/sleep-raw   # raw data folder, read-only for the agent
