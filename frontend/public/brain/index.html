@@ -722,6 +722,14 @@
     .empty-state { font-family:'JetBrains Mono',monospace; }
 
     /* Update banner: hidden by default; JS sets display:flex when there is new content */
+    /* Legend wraps instead of running under the stats box; edge samples drop in narrow views */
+    .legend { flex-wrap: wrap; row-gap: 6px; max-width: calc(100vw - var(--sidebar-width) - 230px); }
+    #stats { bottom: 18px; }
+    @media (max-width: 1100px) {
+      .legend .edge-sample, .legend [title] , .legend > span[style*="border-left"] { display: none; }
+      .legend { max-width: calc(100vw - var(--sidebar-width) - 36px); bottom: 52px; }
+    }
+
     #update-banner {
       display: none;
       position: fixed;
@@ -778,23 +786,23 @@
       <span style="border-left: 1px solid var(--border); height: 18px; margin: 0 4px;"></span>
       <button class="filter-btn" onclick="enterNodeReview()"
               title="Review AI-proposed nodes one by one — ✓ / ✗ to keep or drop"
-              style="border-color:#1a1a1a;color:#1a1a1a;margin-left:auto;">Review nodes</button>
+              style="margin-left:auto;">Review nodes</button>
       <button class="filter-btn" onclick="enterEdgeReview()"
               title="Review AI-proposed links one by one — ✓ / ✗ to confirm or reject"
-              style="border-color:#1a1a1a;color:#1a1a1a;">Review links</button>
+             >Review links</button>
       <button class="filter-btn" id="themeToggle" onclick="toggleTheme()"
               title="Toggle dark / light theme">◐</button>
       <button class="filter-btn" id="sidebarToggle" onclick="toggleSidebar()"
               title="Hide / show the sidebar (full-width graph)">☐</button>
       <button class="filter-btn" onclick="openConceptCreator()"
-              style="border-color:#1a1a1a;color:#1a1a1a;"
+             
               title="Add a concept / question / book / paper">+ New</button>
       <button class="filter-btn" onclick="openExtractor()"
-              style="border-color:#1a1a1a;color:#1a1a1a;"
+             
               title="Paste text → AI extracts concepts / questions / comments">Paste &amp; extract</button>
     </div>
     <div class="filter-row" id="domain-filter-row" style="margin-top: 6px;">
-      <button class="filter-btn" id="domain-toggle" onclick="toggleDomainRow()" style="border-color:#1a1a1a;color:#1a1a1a;">
+      <button class="filter-btn" id="domain-toggle" onclick="toggleDomainRow()">
         <span id="domain-toggle-arrow">▶</span> Topics <span id="domain-active-count" style="opacity:0.6;font-size:9px;"></span>
       </button>
       <button class="filter-btn active" id="domain-all" onclick="clearDomains()" style="display:none;">All</button>
@@ -838,7 +846,7 @@
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;width:640px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;">
       <div style="padding:20px 22px 12px;border-bottom:1px solid var(--border);">
         <h2 style="margin:0;font-size:17px;">Paste &amp; extract</h2>
-        <p style="color:var(--text-dim);font-size:12px;margin:4px 0 0;">Paste any text below — AI splits it into <strong style="color:#000;">concepts</strong> / <strong style="color:#000;">questions</strong> / <strong style="color:#000;">comments on existing nodes</strong>; tick the ones to keep.</p>
+        <p style="color:var(--text-dim);font-size:12px;margin:4px 0 0;">Paste any text below — AI splits it into <strong>concepts</strong> / <strong>questions</strong> / <strong>comments on existing nodes</strong>; tick the ones to keep.</p>
       </div>
       <div style="padding:14px 22px;overflow-y:auto;flex:1;">
         <textarea id="ex-text" placeholder="Paste notes / emails / documents / any thoughts…"
@@ -932,7 +940,7 @@
 
   <script src="https://unpkg.com/3d-force-graph@1.80.0/dist/3d-force-graph.min.js"
           onerror="document.getElementById('sidebar-content').innerHTML='<div class=\'empty-state\' style=\'color:#c95e5e\'>Could not load the 3d-force-graph library (CDN failed). Check your network.</div>'"></script>
-  <script src="brain.js?v=1"></script>
+  <script src="brain.js?v=2"></script>
 
   <script>
     // Update check: read /api/brain/last-update; if timestamp is newer than the one stored in localStorage and any delta > 0, show the banner

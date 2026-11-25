@@ -294,6 +294,15 @@ function shouldShowLabel(n) {
   return false;
 }
 
+// Higher wins when labels collide: projects, then heavy concepts, questions, then sources
+function labelPriority(n) {
+  if (n.type === 'project') return 10000;
+  if (n.type === 'concept') return 1000 + (n.weight || 0) * 10;
+  if (n.type === 'question') return 800;
+  if (n.type === 'source') return 100 + Math.min(500, n.highlights_count || 0);
+  return 0;
+}
+
 function labelTextHeight(n) {
   if (n.type === 'project') return 7;
   if (n.type === 'concept') return 4 + (n.weight || 0) * 0.4;
@@ -529,6 +538,9 @@ function updateLabelsLoop() {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
 
+  // 1) project every labelled node; 2) place labels by priority and hide any that would
+  //    overlap one already placed (keeps the map readable at 1500+ nodes / in a narrow embed).
+  const cands = [];
   allData.nodes.forEach(n => {
     if (!shouldShowLabel(n)) return;
     if (n.x === undefined) return;
@@ -550,26 +562,34 @@ function updateLabelsLoop() {
         navigateTo(n);
       });
       labelsLayer.appendChild(el);
-      entry = {el};
+      entry = {el, w: 0, h: 0};
       labelElements.set(n.id, entry);
     }
-    if (n._matched === false) {
-      entry.el.classList.add('label-hidden');
-      return;
-    }
+    if (!entry.w) { entry.w = entry.el.offsetWidth; entry.h = entry.el.offsetHeight; }
+    if (n._matched === false) { entry.el.classList.add('label-hidden'); return; }
     const proj = projectToScreen(n.x, n.y, n.z || 0, camera, w, h);
-    if (!proj) {
-      entry.el.classList.add('label-hidden');
-      return;
-    }
+    if (!proj) { entry.el.classList.add('label-hidden'); return; }
+    cands.push({n, entry, proj, pri: labelPriority(n)});
+  });
+  cands.sort((a, b) => (b.pri - a.pri) || (a.proj[2] - b.proj[2]));
+  const placed = [];
+  const PAD = 3;
+  for (const c of cands) {
+    const {entry, proj} = c;
+    const bw = entry.w || 80, bh = entry.h || 14;
+    // .node-label is translate(-50%, -150%): box sits centred above the node
+    const x0 = proj[0] - bw / 2 - PAD, x1 = proj[0] + bw / 2 + PAD;
+    const y0 = proj[1] - bh * 1.5 - PAD, y1 = proj[1] - bh * 0.5 + PAD;
+    const hit = c.n.type !== 'project' && placed.some(r => x0 < r[2] && x1 > r[0] && y0 < r[3] && y1 > r[1]);
+    if (hit) { entry.el.classList.add('label-hidden'); continue; }
+    placed.push([x0, y0, x1, y1]);
     entry.el.classList.remove('label-hidden');
     entry.el.style.left = `${proj[0]}px`;
     entry.el.style.top = `${proj[1]}px`;
     // Subtle fade by depth — farther nodes' labels get dimmer
-    const depth = proj[2];
-    const opacity = Math.max(0.35, Math.min(1, 400 / depth));
+    const opacity = Math.max(0.35, Math.min(1, 400 / proj[2]));
     entry.el.style.opacity = String(opacity);
-  });
+  }
 
   requestAnimationFrame(updateLabelsLoop);
 }
@@ -2718,7 +2738,7 @@ window.toggleSidebar = function() {
 // -------------------- Sidebar resizer --------------------
 const SIDEBAR_WIDTH_KEY = 'brain-sidebar-width';
 function setSidebarWidth(px) {
-  const clamped = Math.max(280, Math.min(900, px));
+  const clamped = Math.max(240, Math.min(900, Math.round(window.innerWidth * 0.45), px));
   document.documentElement.style.setProperty('--sidebar-width', `${clamped}px`);
   localStorage.setItem(SIDEBAR_WIDTH_KEY, String(clamped));
   // explicitly resize the 3D canvas, otherwise three.js won't notice the parent div changed
