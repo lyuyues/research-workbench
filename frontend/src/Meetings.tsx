@@ -287,7 +287,16 @@ export function Meetings({ onPrompt, onReply }: PanelProps) {
       </Toolbar>
       <Notice msg={msg} onClear={() => setMsg(null)} />
       {m.error && <p className="error">{m.error}</p>}
-      {open && <FileView path={open} onClose={() => setOpen(null)} />}
+      {open && <FileView path={open} onClose={() => { setOpen(null); m.reload(); }} onSave={(() => {
+        // Slides / notes / Slack message of a meeting: editable here, saved through the meetings API (conflict-checked)
+        for (const k of ["group", "advisor"] as Kind[]) {
+          for (const s of d ? [d.kinds[k].current, ...d.kinds[k].history] : []) {
+            const which = (["slides", "notes", "slack"] as Which[]).find((w) => s.files[w] === open);
+            if (which) return (text: string, base: string) => postJson("/api/meetings/notes", { kind: k, date: s.date, text, expect: base, which });
+          }
+        }
+        return undefined;
+      })()} />}
       {d && !open && recap && (() => {
         const all = [d.kinds[recap.kind].current, ...d.kinds[recap.kind].history];
         const sess = all.find((x) => x.date === recap.date && x.files.recap);

@@ -124,7 +124,9 @@ export function CheckItem({ path, item, onDone, onError, children, deferTextClic
 marked.setOptions({ gfm: true, breaks: false });
 
 export function mdHtml(text: string): string {
-  return DOMPurify.sanitize(marked.parse(text, { async: false }) as string);
+  // YAML front matter (e.g. Marp's "marp: true") is settings, not content
+  const body = text.replace(/^\uFEFF?---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, "");
+  return DOMPurify.sanitize(marked.parse(body, { async: false }) as string);
 }
 
 /** Inline markdown (bold, links, code) for one line. */
@@ -220,7 +222,9 @@ function texLines(text: string) {
   });
 }
 
-export function FileView({ path, anchor, onClose }: { path: string; anchor?: string | null; onClose?: () => void }) {
+/** `onSave` makes a markdown file editable here (split editor + live preview); it returns an error message or null. */
+export function FileView({ path, anchor, onClose, onSave }: { path: string; anchor?: string | null; onClose?: () => void;
+  onSave?: (text: string, base: string) => Promise<string | null> }) {
   const { data, error, reload } = useJson<{ text: string; mtime: number; editable?: boolean; sha?: string; paper?: string }>(
     `/api/file?path=${encodeURIComponent(path)}`);
   const [draft, setDraft] = useState<string | null>(null);
@@ -238,8 +242,20 @@ export function FileView({ path, anchor, onClose }: { path: string; anchor?: str
   }, [draft === null]); // eslint-disable-line react-hooks/exhaustive-deps
   const savedSha = useRef<string | null>(null);
   const savedText = useRef<string | null>(null);   // sha after our own last save, so ⌘S can be pressed again and again
+  const mdEdit = !!onSave && path.endsWith(".md");
   const saveOverleaf = async () => {
-    if (draft === null || !data?.sha) return;
+    if (draft === null) return;
+    if (mdEdit) {
+      setSaving(true); setSaveMsg(null);
+      const err = await onSave!(draft, savedSha.current ?? data?.text ?? "");
+      setSaving(false);
+      if (err) { setSaveMsg(`⚠️ ${err}`); return; }
+      savedText.current = draft;
+      savedSha.current = draft.trimEnd() + "\n";   // what the server wrote: the base for the next ⌘S
+      setSaveMsg(`✓ Saved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+      return;
+    }
+    if (!data?.sha) return;
     setSaving(true); setSaveMsg(null);
     const r = await fetch("/api/paper/save", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ path, sha: savedSha.current ?? data.sha, text: draft }) });
@@ -282,10 +298,12 @@ export function FileView({ path, anchor, onClose }: { path: string; anchor?: str
     <div ref={cardRef} className={`card fileview${full ? " fileview-full" : ""}`}>
       <div className="card-head">
         <b className="small">{path}</b>
-        {data && <span className="muted small">· {when(data.mtime)} · {data.editable
+        {data && <span className="muted small">· {when(data.mtime)} · {mdEdit
+          ? (draft === null ? "double-click or ✎ Edit to change it" : "editing · preview on the right")
+          : data.editable
           ? (draft === null ? "platform draft · Overleaf gets the clean version via Writing › Publish" : "editing the platform draft")
           : path.endsWith(".md") && data.text.includes("Question for you") ? "double-click a ⚠️ question to answer it" : "read-only"}</span>}
-        {data?.editable && draft === null && <button className="ask" onClick={() => { setSaveMsg(null); setDraft(data.text); }}>✎ Edit</button>}
+        {(data?.editable || (data && mdEdit)) && draft === null && <button className="ask" onClick={() => { setSaveMsg(null); setDraft(data.text); }}>✎ Edit</button>}
         {data?.paper && <a className="linkish small" href={`#/pdf/${data.paper}`} target="_blank" rel="noreferrer">Live PDF ↗</a>}
         {draft !== null && <>
           <button onClick={() => void saveOverleaf()} disabled={saving}>{saving ? "Saving…" : "Save (⌘S)"}</button>
@@ -297,7 +315,14 @@ export function FileView({ path, anchor, onClose }: { path: string; anchor?: str
       </div>
       {error && <p className="error">{error}</p>}
       {!data && !error && <p className="muted">Loading…</p>}
-      {data && (path.endsWith(".md")
+      {data && (mdEdit
+        ? (draft !== null
+          ? <div className="recap-split">
+              <textarea className="recap-edit" value={draft} spellCheck aria-label="Edit file" onChange={(e) => setDraft(e.target.value)} />
+              <div className="recap-preview"><Markdown text={draft} base={path} /></div>
+            </div>
+          : <div onDoubleClick={() => { setSaveMsg(null); setDraft(data.text); }} title="Double-click to edit"><Markdown text={data.text} base={path} /></div>)
+        : path.endsWith(".md")
         ? (data.text.includes("Question for you") ? <AnnotatedMarkdown text={data.text} path={path} onSaved={reload} /> : <Markdown text={data.text} base={path} />)
         : draft !== null
           ? <textarea className="tex-editor" value={draft} spellCheck aria-label="Edit file"

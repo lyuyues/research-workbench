@@ -228,3 +228,21 @@ describe("Undo after ticking", () => {
     expect(bodies.map((b) => [b.checked, b.expect])).toEqual([[true, "- [ ] O-MEET1113-1 Practice"], [false, "- [x] O-MEET1113-1 Practice"]]);
   });
 });
+
+describe("FileView editing markdown", () => {
+  it("hides front matter, edits with a preview and saves through onSave", async () => {
+    const { FileView } = await import("./common");
+    const { fireEvent, waitFor } = await import("@testing-library/react");
+    const text = "---\nmarp: true\n---\n# Done this week\n- one\n";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ text, mtime: 1 }))));
+    const onSave = vi.fn(async () => null);
+    render(<FileView path="meetings/group/2026-11-25_slides.md" onSave={onSave} />);
+    await screen.findByText("Done this week");
+    expect(screen.queryByText(/marp: true/)).toBeNull();
+    fireEvent.click(screen.getByText("✎ Edit"));
+    fireEvent.change(screen.getByLabelText("Edit file"), { target: { value: text + "- two\n" } });
+    fireEvent.click(screen.getByText("Save (⌘S)"));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(text + "- two\n", text));
+    await screen.findByText(/Saved/);
+  });
+});
