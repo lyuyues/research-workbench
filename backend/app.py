@@ -297,7 +297,12 @@ def create_app(settings: Settings) -> FastAPI:
                 if path == "/api/panels":
                     audit(user, "opened the platform", ", ".join(sorted(user.panels)))
         request.state.user = user
-        return await call_next(request)
+        response = await call_next(request)
+        # Un-hashed static files (index.html, brain/, reports' assets): revalidate every time, so a deploy shows
+        # up without a hard reload. Vite's hashed /assets/ keep the browser's normal caching.
+        if not path.startswith(("/api/", "/assets/")) and "cache-control" not in response.headers:
+            response.headers["Cache-Control"] = "no-cache"
+        return response
 
     def who(request: Request) -> User:
         return getattr(request.state, "user", OWNER_LOCAL)
