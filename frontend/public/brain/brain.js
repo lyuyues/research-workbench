@@ -47,7 +47,7 @@ function showSyncError(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'sync-toast';
-    t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#5a2020;color:#ffb0b0;padding:8px 14px;border-radius:6px;font-size:12px;z-index:100;border:1px solid #7a3030;';
+    t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fdecea;color:#c0362c;padding:8px 14px;border-radius:6px;font-size:12px;z-index:100;border:1px solid #f2c4bf;';
     document.body.appendChild(t);
   }
   t.textContent = '⚠ ' + msg;
@@ -259,22 +259,23 @@ function statusOf(item) {
 }
 
 // -------------------- Color & sizing --------------------
+// Tuned for the platform's light background (#f7f8fa); legend dots in index.html use the same values
 const NODE_COLOR = {
-  project:   '#e63946',
-  concept:   '#4a8fe2',
-  paper:     '#52b788',
-  book:      '#a8dadc',
-  highlight: '#f4d8a8',
-  question:  '#f4a261',
-  comment:   '#d4a5d4',  // muted pink/lavender
+  project:   '#d1495b',
+  concept:   '#2f5bd3',
+  paper:     '#2e9e6b',
+  book:      '#3a9ca8',
+  highlight: '#d9a33a',
+  question:  '#e07a2f',
+  comment:   '#a463b8',
 };
 
 function nodeColor(n) {
-  const base = NODE_COLOR[n.subtype] || NODE_COLOR[n.type] || '#888';
+  const base = NODE_COLOR[n.subtype] || NODE_COLOR[n.type] || '#8a93a3';
   const status = statusOf(n);
   // If lens active and this node not matched → very dim grey
-  if (n._matched === false) return '#2a2a32';
-  if (status === 'rejected') return '#3a2020';
+  if (n._matched === false) return '#dde1e7';
+  if (status === 'rejected') return '#efd3d0';
   if (status === 'pending')  return base + '88';
   return base;
 }
@@ -329,7 +330,7 @@ function nodeOpacityFn(n) {
 }
 
 // All edges share one grey (mono); types differ by width + arrows + dashes
-const EDGE_COLOR_BASE = '#9a9aa8';
+const EDGE_COLOR_BASE = '#8a93a3';
 const EDGE_COLOR = {
   cites:        EDGE_COLOR_BASE,
   instantiates: EDGE_COLOR_BASE,
@@ -356,16 +357,16 @@ const EDGE_DASHED = new Set(['echoes']);
 
 function linkColor(l) {
   const base = EDGE_COLOR[l.type] || '#444';
-  if (l._matched === false) return '#1a1a22';
+  if (l._matched === false) return '#eceef2';
   const sId = idOf(l.source), tId = idOf(l.target);
   const sNode = allData.nodes.find(n => n.id === sId);
   const tNode = allData.nodes.find(n => n.id === tId);
   if (!sNode || !tNode) return base;
   // Hide edge if either endpoint rejected
-  if (statusOf(sNode) === 'rejected' || statusOf(tNode) === 'rejected') return '#1a1a22';
+  if (statusOf(sNode) === 'rejected' || statusOf(tNode) === 'rejected') return '#eceef2';
   // Edge has its OWN status now (independent of nodes)
   const es = edgeStatusOf(l);
-  if (es === 'rejected') return '#1a1a22';
+  if (es === 'rejected') return '#eceef2';
   if (es === 'confirmed') return base;
   // pending: dim
   return base + '44';
@@ -429,8 +430,8 @@ async function init() {
   });
 
   graph = ForceGraph3D()(document.getElementById('graph'))
-    .backgroundColor('#07070c')
-    .nodeLabel(n => `<div style="background:rgba(0,0,0,0.85);padding:6px 10px;border-radius:4px;font-size:12px;color:#fff;font-family:-apple-system,sans-serif;">${escapeHtml(n.label)}<br><span style="color:#888;font-size:10px;">${n.type}${statusOf(n) === 'pending' ? ' · pending' : ''}</span></div>`)
+    .backgroundColor('#f7f8fa')
+    .nodeLabel(n => `<div style="background:#fff;border:1px solid #e3e6eb;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:6px 10px;border-radius:6px;font-size:12px;color:#1f2430;font-family:Inter,-apple-system,sans-serif;">${escapeHtml(n.label)}<br><span style="color:var(--muted);font-size:10px;">${n.type}${statusOf(n) === 'pending' ? ' · pending' : ''}</span></div>`)
     .nodeColor(nodeColor)
     .nodeVal(nodeSize)
     .nodeOpacity(0.95)
@@ -752,7 +753,7 @@ function renderDomainChips() {
     const active = activeDomains.has(d.id) ? 'active' : '';
     return `<button class="filter-btn ${active}" data-domain="${d.id}"
                     onclick="toggleDomain('${d.id}')"
-                    style="${active ? `background:${d.color};border-color:${d.color};color:#1a1a22;` : `border-color:${d.color};color:${d.color};`}"
+                    style="${active ? `background:${d.color};border-color:${d.color};color:#fff;` : `border-color:${d.color};color:${d.color};`}"
                     title="${d.count} nodes">${d.label} <span style="opacity:0.7;font-size:9px;">${d.count}</span></button>`;
   }).join('');
 }
@@ -893,7 +894,7 @@ async function loadNodeContext(nodeId) {
     let html = '';
     contexts.forEach(({source, hops, highlights}) => {
       const hopHint = hops > 1 ? ` <span style="color:var(--text-faint);font-size:9px;">(${hops} hops)</span>` : '';
-      html += `<div style="margin-top:10px;"><div style="font-size:11px;color:#7fd3a1;margin-bottom:4px;">📚 ${escapeHtml(source.label)}${hopHint}</div>`;
+      html += `<div style="margin-top:10px;"><div style="font-size:11px;color:#227a52;margin-bottom:4px;">📚 ${escapeHtml(source.label)}${hopHint}</div>`;
       highlights.forEach(h => {
         html += `<div class="quote">`;
         if (h.page) html += `<div class="meta">p.${h.page}</div>`;
@@ -925,15 +926,15 @@ function renderDetail(node) {
   let html = '';
   // Type tag
   const tagColors = {
-    project:   {bg: '#3a1015', color: '#ff8b95'},
-    concept:   {bg: '#10253a', color: '#7eb6ff'},
-    paper:     {bg: '#15301f', color: '#7fd3a1'},
-    book:      {bg: '#15252a', color: '#9bd1d6'},
-    highlight: {bg: '#2a200f', color: '#f4d8a8'},
-    question:  {bg: '#2a1810', color: '#f4a261'},
+    project:   {bg: '#fbe9eb', color: '#b02a3e'},
+    concept:   {bg: '#e9effc', color: '#2f5bd3'},
+    paper:     {bg: '#e6f5ee', color: '#227a52'},
+    book:      {bg: '#e5f3f5', color: '#2a7a85'},
+    highlight: {bg: '#fbf3e2', color: '#9a6b12'},
+    question:  {bg: '#fdeee3', color: '#b55a1a'},
   };
   const subtype = node.subtype || node.type;
-  const tag = tagColors[subtype] || {bg: '#1a1a25', color: '#aaa'};
+  const tag = tagColors[subtype] || {bg: '#f1f3f6', color: '#6b7280'};
   // Type tag — double-click to edit via inline dropdown
   const tagId = `type-tag-${node.id}`;
   const labelTxt = `${node.type}${node.subtype ? ' · ' + node.subtype : ''}`;
@@ -946,10 +947,10 @@ function renderDetail(node) {
   html += `<h2 style="display:flex;align-items:flex-start;gap:8px;">
     <span style="flex:1;">${escapeHtml(displayLabel)}</span>
     <button onclick="renameNode('${node.id}')" title="${isRenamed ? 'Original name: ' + escapeHtml(node.label) + '\\nClick to edit' : 'Click to rename (display only, data unchanged)'}"
-            style="background:transparent;border:1px solid #2a2a38;color:${isRenamed ? '#f4a261' : '#666'};padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;flex-shrink:0;line-height:1.4;">✎${isRenamed ? ' renamed' : ''}</button>
+            style="background:transparent;border:1px solid var(--line);color:${isRenamed ? '#f4a261' : 'var(--muted)'};padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;flex-shrink:0;line-height:1.4;">✎${isRenamed ? ' renamed' : ''}</button>
   </h2>`;
   if (isRenamed) {
-    html += `<div style="font-size:10px;color:#666;margin:-4px 0 8px 0;">Original: ${escapeHtml(node.label)}</div>`;
+    html += `<div style="font-size:10px;color:var(--muted);margin:-4px 0 8px 0;">Original: ${escapeHtml(node.label)}</div>`;
   }
 
   // Find duplicate-label candidates for merge
@@ -1129,14 +1130,14 @@ function renderDetail(node) {
   </h3>
   <div id="discover-panel-${node.id}" style="display:none;margin-bottom:10px;"></div>`;
   // Inline edge creator (hidden by default)
-  html += `<div id="edge-creator-${node.id}" style="display:none;background:#15201a;border:1px solid #2a4030;border-radius:6px;padding:10px;margin-bottom:10px;">
-    <div style="font-size:11px;color:#7fd3a1;margin-bottom:6px;">Add a link you found</div>
+  html += `<div id="edge-creator-${node.id}" style="display:none;background:var(--tool);border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:10px;">
+    <div style="font-size:11px;color:#227a52;margin-bottom:6px;">Add a link you found</div>
     <input type="text" id="ec-search-${node.id}" placeholder="Target node (search label)"
            oninput="filterEdgeTargets('${node.id}')"
-           style="width:100%;background:#0e120e;border:1px solid #2a4030;color:#e8e8ed;padding:6px 8px;border-radius:4px;font-size:12px;box-sizing:border-box;margin-bottom:4px;">
-    <div id="ec-targets-${node.id}" style="max-height:160px;overflow-y:auto;background:#0e120e;border-radius:4px;margin-bottom:6px;"></div>
+           style="width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:6px 8px;border-radius:4px;font-size:12px;box-sizing:border-box;margin-bottom:4px;">
+    <div id="ec-targets-${node.id}" style="max-height:160px;overflow-y:auto;background:var(--panel);border-radius:4px;margin-bottom:6px;"></div>
     <div style="display:flex;gap:6px;margin-bottom:6px;">
-      <select id="ec-type-${node.id}" style="flex:1;background:#0e120e;border:1px solid #2a4030;color:#e8e8ed;padding:5px;border-radius:4px;font-size:11.5px;">
+      <select id="ec-type-${node.id}" style="flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:5px;border-radius:4px;font-size:11.5px;">
         <option value="echoes">echoes</option>
         <option value="extends">extends</option>
         <option value="contradicts">contradicts</option>
@@ -1147,13 +1148,13 @@ function renderDetail(node) {
         <option value="cites">cites</option>
       </select>
       <input type="text" id="ec-label-${node.id}" placeholder="Label (optional)"
-             style="flex:1;background:#0e120e;border:1px solid #2a4030;color:#e8e8ed;padding:5px;border-radius:4px;font-size:11.5px;">
+             style="flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:5px;border-radius:4px;font-size:11.5px;">
     </div>
     <div style="display:flex;gap:6px;">
       <button onclick="createEdgeFromUI('${node.id}')"
-              style="flex:1;background:#52b788;color:#0a0a0f;border:none;padding:6px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">✓ Create</button>
+              style="flex:1;background:#52b788;color:#fff;border:none;padding:6px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">✓ Create</button>
       <button onclick="closeEdgeCreator('${node.id}')"
-              style="background:transparent;border:1px solid #444;color:#aaa;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:11px;">Cancel</button>
+              style="background:transparent;border:1px solid #444;color:var(--muted);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:11px;">Cancel</button>
     </div>
   </div>`;
 
@@ -1303,7 +1304,7 @@ function renderListBody() {
     const arrow = collapsed ? '▶' : '▼';
     html += `<div class="list-section-header" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;padding:4px 0;"
                   onclick="toggleListSection('${t}')">
-      <span style="color:#666;font-size:9px;width:8px;">${arrow}</span>
+      <span style="color:var(--muted);font-size:9px;width:8px;">${arrow}</span>
       <span>${typeLabel[t]} · ${groups[t].length}</span>
     </div>`;
     if (collapsed) {
@@ -1322,7 +1323,7 @@ function renderListBody() {
     groups[t].forEach(n => {
       const status = statusOf(n);
       const dotColor = nodeColor(n);
-      const baseColor = NODE_COLOR[n.subtype] || NODE_COLOR[n.type] || '#888';
+      const baseColor = NODE_COLOR[n.subtype] || NODE_COLOR[n.type] || '#8a93a3';
       // three stacked signals: width + opacity + right-side badge
       let barWidth, barAlpha, badge, textStyle, actionStrips;
       const isLockedConfirmed = n.confirmed === true && !confirmations[n.id];
@@ -1631,7 +1632,7 @@ window.saveNote = async function(nodeId) {
     await persistNote(nodeId, newText);
     if (status) {
       status.textContent = newText ? '✓ Saved' : '';
-      status.style.color = '#5a8a3a';
+      status.style.color = '#227a52';
       setTimeout(() => { if (status) status.textContent = ''; }, 1500);
     }
   }
@@ -1903,7 +1904,7 @@ window.openConceptCreator = function() {
   domsEl.innerHTML = domains.map(d => `
     <span class="cc-dom-chip" data-id="${d.id}"
           onclick="toggleCcDomain('${d.id}', this)"
-          style="font-size:11px;padding:3px 9px;border-radius:11px;border:1px solid ${d.color || '#444'};color:${d.color || '#aaa'};cursor:pointer;">
+          style="font-size:11px;padding:3px 9px;border-radius:11px;border:1px solid ${d.color || '#444'};color:${d.color || 'var(--muted)'};cursor:pointer;">
       ${d.label}
     </span>`).join('');
   modal.style.display = 'flex';
@@ -2036,8 +2037,8 @@ window.discoverRelated = async function(nodeId) {
                 style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;">✕</button>
       </div>`;
     candidates.forEach((c) => {
-      const dotColor = NODE_COLOR[c.subtype] || NODE_COLOR[c.type] || '#888';
-      const matched = (c.matched_terms || []).map(t => `<span style="background:rgba(74,143,226,0.2);color:#7eb6ff;padding:1px 5px;border-radius:6px;font-size:9px;margin-right:3px;">${escapeHtml(t)}</span>`).join('');
+      const dotColor = NODE_COLOR[c.subtype] || NODE_COLOR[c.type] || '#8a93a3';
+      const matched = (c.matched_terms || []).map(t => `<span style="background:rgba(74,143,226,0.2);color:var(--accent);padding:1px 5px;border-radius:6px;font-size:9px;margin-right:3px;">${escapeHtml(t)}</span>`).join('');
       html += `<div id="discover-row-${nodeId}-${c.id.replace(/[^a-z0-9]/gi,'_')}" style="display:flex;gap:8px;align-items:flex-start;padding:8px;background:var(--surface);border-radius:4px;margin-bottom:5px;">
         <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};margin-top:5px;flex-shrink:0;"></span>
         <div style="flex:1;min-width:0;">
@@ -2257,15 +2258,15 @@ window.filterEdgeTargets = function(fromId) {
     .filter(n => !search || (getDisplayLabel(n) + ' ' + (n.detail || '')).toLowerCase().includes(search))
     .slice(0, 20);
   targetsDiv.innerHTML = candidates.map(n => {
-    const sel = edgeCreatorTarget[fromId] === n.id ? 'background:#1f3a2a;' : '';
+    const sel = edgeCreatorTarget[fromId] === n.id ? 'background:var(--user);' : '';
     const col = nodeColor(n);
     return `<div onclick="selectEdgeTarget('${fromId}','${n.id}')"
-                 style="${sel}padding:5px 8px;cursor:pointer;font-size:11.5px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #1a2218;">
+                 style="${sel}padding:5px 8px;cursor:pointer;font-size:11.5px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);">
       <span style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;"></span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d8d8e0;">${escapeHtml(getDisplayLabel(n))}</span>
-      <span style="color:#666;font-size:9px;">${n.type}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);">${escapeHtml(getDisplayLabel(n))}</span>
+      <span style="color:var(--muted);font-size:9px;">${n.type}</span>
     </div>`;
-  }).join('') || `<div style="padding:8px;color:#555;font-size:11px;text-align:center;">No match</div>`;
+  }).join('') || `<div style="padding:8px;color:var(--muted);font-size:11px;text-align:center;">No match</div>`;
 };
 
 window.selectEdgeTarget = function(fromId, targetId) {
@@ -2450,12 +2451,12 @@ function focusOnCurrentReviewNode() {
 }
 
 function nodeContextBlock(n) {
-  let html = `<div style="background:#181822;padding:10px 12px;border-radius:5px;margin:6px 0;border-left:3px solid ${nodeColor(n)};">`;
+  let html = `<div style="background:var(--tool);padding:10px 12px;border-radius:5px;margin:6px 0;border-left:3px solid ${nodeColor(n)};">`;
   const sub = n.subtype ? ` · ${n.subtype}` : '';
-  html += `<div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;">${n.type}${sub}</div>`;
-  html += `<div style="font-size:14px;font-weight:600;margin:3px 0;color:#fff;">${escapeHtml(n.label)}</div>`;
+  html += `<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">${n.type}${sub}</div>`;
+  html += `<div style="font-size:14px;font-weight:600;margin:3px 0;color:var(--text);">${escapeHtml(n.label)}</div>`;
   if (n.detail) {
-    html += `<div style="font-size:11.5px;color:#bbb;line-height:1.5;margin-top:5px;">${escapeHtml(n.detail.slice(0, 280))}${n.detail.length > 280 ? '…' : ''}</div>`;
+    html += `<div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:5px;">${escapeHtml(n.detail.slice(0, 280))}${n.detail.length > 280 ? '…' : ''}</div>`;
   }
   if (n.yue_comment) {
     html += `<div class="user-comment" style="margin-top:8px;font-size:11.5px;">${escapeHtml(n.yue_comment)}</div>`;
@@ -2464,8 +2465,8 @@ function nodeContextBlock(n) {
   if (n.type === 'source' && n.highlights && n.highlights.length > 0) {
     const commented = n.highlights.find(h => h.yue_comment);
     const showHL = commented || n.highlights[0];
-    html += `<div style="margin-top:8px;padding:6px 8px;background:#0e0e15;border-radius:3px;font-size:11px;color:#aaa;line-height:1.5;">`;
-    if (showHL.page) html += `<span style="color:#666;">p.${showHL.page}</span> `;
+    html += `<div style="margin-top:8px;padding:6px 8px;background:var(--tool);border-radius:3px;font-size:11px;color:var(--muted);line-height:1.5;">`;
+    if (showHL.page) html += `<span style="color:var(--muted);">p.${showHL.page}</span> `;
     html += escapeHtml(showHL.text.slice(0, 200)) + (showHL.text.length > 200 ? '…' : '');
     if (showHL.yue_comment) {
       html += `<br><span style="color:#f4a261;">💬 ${escapeHtml(showHL.yue_comment)}</span>`;
@@ -2479,11 +2480,11 @@ function nodeContextBlock(n) {
 function reviewHeader(themeColor, label) {
   const total = reviewQueue.length;
   const progress = ((reviewIndex / total) * 100).toFixed(0);
-  return `<div style="margin:-8px -22px 12px -22px;padding:8px 22px;background:#1a1530;border-bottom:1px solid #2a2244;display:flex;justify-content:space-between;align-items:center;">
+  return `<div style="margin:-8px -22px 12px -22px;padding:8px 22px;background:var(--user);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
     <span style="font-size:11px;color:${themeColor};">${label} · ${reviewIndex + 1} / ${total}</span>
     <button class="filter-btn" style="font-size:10px;padding:3px 8px;" onclick="exitReview()">⏹ Exit</button>
   </div>
-  <div style="height:3px;background:#1a1530;margin:-12px -22px 14px -22px;overflow:hidden;">
+  <div style="height:3px;background:var(--user);margin:-12px -22px 14px -22px;overflow:hidden;">
     <div style="height:100%;width:${progress}%;background:linear-gradient(90deg,${themeColor},#52b788);transition:width 0.3s;"></div>
   </div>`;
 }
@@ -2494,7 +2495,7 @@ function reviewButtons(yesLabel, noLabel) {
     <button class="confirm-btn no" style="flex:2;" onclick="reviewDecide('rejected')">${noLabel} <span style="opacity:0.6;font-size:10px;">Esc</span></button>
     <button class="confirm-btn edit" style="flex:1;" onclick="reviewSkip()">⏭ Skip <span style="opacity:0.6;font-size:10px;">→</span></button>
   </div>
-  <p style="color:#555;font-size:10.5px;text-align:center;margin-top:14px;line-height:1.5;">Space = ✓ · Esc = ✗ · → skip<br>Skipped items come back; ✓/✗ are saved permanently</p>`;
+  <p style="color:var(--muted);font-size:10.5px;text-align:center;margin-top:14px;line-height:1.5;">Space = ✓ · Esc = ✗ · → skip<br>Skipped items come back; ✓/✗ are saved permanently</p>`;
 }
 
 function renderEdgeReviewSidebar() {
@@ -2508,7 +2509,7 @@ function renderEdgeReviewSidebar() {
 
   let html = reviewHeader('#9580ff', '🔍 Review links');
   html += `<h2 style="font-size:15px;margin-bottom:4px;">Is this link right?</h2>`;
-  html += `<p style="color:#888;font-size:11.5px;margin-bottom:14px;">AI says these two nodes are linked by <strong style="color:#9580ff;">${escapeHtml(relLabel)}</strong>.</p>`;
+  html += `<p style="color:var(--muted);font-size:11.5px;margin-bottom:14px;">AI says these two nodes are linked by <strong style="color:#9580ff;">${escapeHtml(relLabel)}</strong>.</p>`;
   html += nodeContextBlock(s);
   html += `<div style="text-align:center;color:#9580ff;font-size:13px;margin:6px 0;">↓ <strong>${escapeHtml(relLabel)}</strong> ↓</div>`;
   html += nodeContextBlock(t);
@@ -2524,7 +2525,7 @@ function renderNodeReviewSidebar() {
 
   let html = reviewHeader('#f4a261', '🔍 Review nodes');
   html += `<h2 style="font-size:15px;margin-bottom:4px;">Is this node real?</h2>`;
-  html += `<p style="color:#888;font-size:11.5px;margin-bottom:14px;">AI inferred this <strong style="color:#f4a261;">${node.type}</strong> from your highlights. Is it something you actually care about?</p>`;
+  html += `<p style="color:var(--muted);font-size:11.5px;margin-bottom:14px;">AI inferred this <strong style="color:#f4a261;">${node.type}</strong> from your highlights. Is it something you actually care about?</p>`;
   html += nodeContextBlock(node);
 
   // 📖 Sources — pull source highlights that gave rise to this node
@@ -2536,7 +2537,7 @@ function renderNodeReviewSidebar() {
       const commented = allH.filter(h => h.yue_comment);
       const show = commented.slice(0, 2).length ? commented.slice(0, 2) : allH.slice(0, 1);
       if (show.length === 0) return;
-      html += `<div style="margin-top:8px;"><div style="font-size:11px;color:#7fd3a1;margin-bottom:4px;">📚 ${escapeHtml(source.label)}</div>`;
+      html += `<div style="margin-top:8px;"><div style="font-size:11px;color:#227a52;margin-bottom:4px;">📚 ${escapeHtml(source.label)}</div>`;
       show.forEach(h => {
         html += `<div class="quote">`;
         if (h.page) html += `<div class="meta">p.${h.page}</div>`;
@@ -2701,14 +2702,9 @@ const _origRenderSidebar = renderSidebar;
 // -------------------- Theme toggle --------------------
 const THEME_KEY = 'brain-theme';
 function applyTheme(theme) {
-  // Are.na convention: light is default (no class), dark is opt-in via body.dark
-  document.body.classList.toggle('dark', theme === 'dark');
-  const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = theme === 'dark' ? '●' : '○';
-  if (graph && graph.backgroundColor) {
-    graph.backgroundColor(theme === 'dark' ? '#07070c' : '#fafafd');
-  }
-  localStorage.setItem(THEME_KEY, theme);
+  // One look, the platform's light palette: the old dark / are.na themes are gone
+  document.body.classList.remove('dark', 'light');
+  if (graph && graph.backgroundColor) graph.backgroundColor('#f7f8fa');
 }
 window.toggleTheme = function() {
   const cur = document.body.classList.contains('dark') ? 'dark' : 'light';
@@ -2730,7 +2726,7 @@ window.toggleSidebar = function() {
 (function restoreTheme() {
   // light = default (no class); add 'dark' only if explicitly saved
   const saved = localStorage.getItem(THEME_KEY);
-  if (saved === 'dark') document.body.classList.add('dark');
+
   // Strip any stale 'light' class from older versions
   document.body.classList.remove('light');
 })();
@@ -2791,7 +2787,7 @@ window.addEventListener('resize', () => {
 // Boot
 init().catch(e => {
   document.getElementById('sidebar-content').innerHTML =
-    `<div class="empty-state" style="color:#c95e5e;">Failed to load: ${escapeHtml(e.message)}<br><br>Check that the server and the <code style="background:#1a1a25;padding:2px 6px;border-radius:3px;">/api/brain</code> endpoints are reachable, then reload.</div>`;
+    `<div class="empty-state" style="color:#c95e5e;">Failed to load: ${escapeHtml(e.message)}<br><br>Check that the server and the <code style="background:var(--tool);padding:2px 6px;border-radius:3px;">/api/brain</code> endpoints are reachable, then reload.</div>`;
 });
 
 
