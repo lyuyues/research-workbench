@@ -588,7 +588,7 @@ function updateLabelsLoop() {
     entry.el.style.left = `${proj[0]}px`;
     entry.el.style.top = `${proj[1]}px`;
     // Subtle fade by depth — farther nodes' labels get dimmer
-    const opacity = Math.max(0.35, Math.min(1, 400 / proj[2]));
+    const opacity = Math.max(0.6, Math.min(1, 400 / proj[2]));
     entry.el.style.opacity = String(opacity);
   }
 
