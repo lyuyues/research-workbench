@@ -800,6 +800,10 @@
       <button class="filter-btn" onclick="openExtractor()"
              
               title="Paste text → AI extracts concepts / questions / comments">Paste &amp; extract</button>
+      <button class="filter-btn" id="zoteroRefresh" onclick="refreshZotero()"
+              title="Import new Zotero highlights and notes">↻ Zotero</button>
+      <a class="filter-btn" id="openTab" href="/brain/index.html" target="_blank" rel="noopener"
+         title="Open in a new tab" style="display:none;text-decoration:none;">↗</a>
     </div>
     <div class="filter-row" id="domain-filter-row" style="margin-top: 6px;">
       <button class="filter-btn" id="domain-toggle" onclick="toggleDomainRow()">
@@ -940,7 +944,7 @@
 
   <script src="https://unpkg.com/3d-force-graph@1.80.0/dist/3d-force-graph.min.js"
           onerror="document.getElementById('sidebar-content').innerHTML='<div class=\'empty-state\' style=\'color:#c95e5e\'>Could not load the 3d-force-graph library (CDN failed). Check your network.</div>'"></script>
-  <script src="brain.js?v=2"></script>
+  <script src="brain.js?v=3"></script>
 
   <script>
     // Update check: read /api/brain/last-update; if timestamp is newer than the one stored in localStorage and any delta > 0, show the banner

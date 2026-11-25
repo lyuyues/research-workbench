@@ -210,7 +210,7 @@ export function AgentChat({ panel, attachment = null, onDetach, onClose, connect
         <div className="chat-head-actions">
           <button onClick={() => dispatch({ type: "reset" })} disabled={!idle}>New chat</button>
           {onClose && (
-            <button className="mobile-only" onClick={onClose} aria-expanded="true" aria-controls="agent-drawer">
+            <button className="mobile-only drawer-hide" onClick={onClose} aria-expanded="true" aria-controls="agent-drawer">
               Hide
             </button>
           )}

@@ -2793,3 +2793,43 @@ init().catch(e => {
   document.getElementById('sidebar-content').innerHTML =
     `<div class="empty-state" style="color:#c95e5e;">Failed to load: ${escapeHtml(e.message)}<br><br>Check that the server and the <code style="background:#1a1a25;padding:2px 6px;border-radius:3px;">/api/brain</code> endpoints are reachable, then reload.</div>`;
 });
+
+
+// -------------------- Zotero refresh (the same import the daily job runs) --------------------
+(function initZoteroRefresh() {
+  const btn = document.getElementById('zoteroRefresh');
+  const tab = document.getElementById('openTab');
+  if (tab && window.top !== window) tab.style.display = '';   // only useful when embedded in the platform
+  if (!btn) return;
+  const show = (s) => {
+    const when = s && s.last && s.last.timestamp ? new Date(s.last.timestamp).toLocaleString() : 'never';
+    btn.title = s && s.zotero_configured === false ? 'Zotero is not configured on the server'
+      : `Import new Zotero highlights and notes · last import: ${when}`;
+    btn.disabled = !!(s && (s.running || s.zotero_configured === false));
+    btn.textContent = s && s.running ? '↻ Refreshing…' : '↻ Zotero';
+  };
+  const status = async () => (await fetch('/api/brain/import', { cache: 'no-store' })).json();
+  status().then(show).catch(() => {});
+  window.refreshZotero = async function () {
+    try {
+      const r = await fetch('/api/brain/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      if (!r.ok) { alertBar(`Refresh failed: HTTP ${r.status}`); return; }
+      show({ running: true });
+      const t = setInterval(async () => {
+        try {
+          const s = await status();
+          if (s.running) return;
+          clearInterval(t);
+          show(s);
+          if (s.error) alertBar(`Refresh failed: ${s.error}`);
+          else location.reload();
+        } catch { /* keep polling */ }
+      }, 3000);
+    } catch (e) { alertBar(`Refresh failed: ${e}`); }
+  };
+  function alertBar(msg) {
+    const b = document.getElementById('update-banner');
+    document.getElementById('update-banner-msg').textContent = msg;
+    b.style.display = 'flex';
+  }
+})();

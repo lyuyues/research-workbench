@@ -129,7 +129,9 @@ function MainApp() {
   };
   const aside = useRef<HTMLElement>(null);
   const mobile = useIsMobile();
-  const hidden = mobile && !drawer;
+  // Immersive panels (Brain) fill the whole content area; the agent becomes a slide-out drawer there too.
+  const immersive = !mobile && active === "brain";
+  const hidden = (mobile || immersive) && !drawer;
   const [widths, setWidths] = useColumnWidths();
   useVisualViewportVars();
 
@@ -171,10 +173,10 @@ function MainApp() {
 
   return (
     <AudioProvider>
-    <div className={`layout${readOnly ? " readonly" : ""}`}
+    <div className={`layout${readOnly ? " readonly" : ""}${immersive ? " immersive" : ""}`}
       style={{ "--nav-w": `${widths.nav}px`, "--agent-w": `${widths.agent}px` } as React.CSSProperties}>
       {!mobile && <Splitter side="nav" widths={widths} onChange={setWidths} />}
-      {!mobile && !readOnly && <Splitter side="agent" widths={widths} onChange={setWidths} />}
+      {!mobile && !immersive && !readOnly && <Splitter side="agent" widths={widths} onChange={setWidths} />}
       <nav className="nav">
         <div className="brand">Research</div>
         <NavTree panels={list} current={current?.id} flat={mobile} badges={badges}
@@ -187,7 +189,7 @@ function MainApp() {
           <p className="error" role="alert">{panels.message}</p>
         ) : (
           <>
-            <h1>{current?.title ?? ""}</h1>
+            {!immersive && <h1>{current?.title ?? ""}</h1>}
             {viewer && (
               <div className="viewer">
                 <FileView path={viewer.path} anchor={viewer.anchor} onClose={() => setViewer(null)} />
