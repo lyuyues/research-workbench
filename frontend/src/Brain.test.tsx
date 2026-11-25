@@ -9,6 +9,6 @@ describe("Brain", () => {
   it("embeds the map page with nothing around it", () => {
     const { container } = render(<Brain />);
     expect(container.children).toHaveLength(1);
-    expect(container.querySelector("iframe")!.getAttribute("src")).toBe("/brain/index.html");
+    expect(container.querySelector("iframe")!.getAttribute("src")).toBe("/brain/index.html?v=3");
   });
 });
