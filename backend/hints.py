@@ -42,6 +42,18 @@ PANEL_HINTS = {
     "trends": "The Trends panel shows the daily feed in trends/data/YYYY-MM-DD.json (+ .ai.json with one-line summaries "
               "and relevance 0-3), using the topics in trends/config.json.",
     "books": "The Books panel lists recently opened books from audiobooks/zotero_books.json.",
+    "brain": "The Brain panel is a 3D concept map of what the user reads, stored in one SQLite file, "
+             "reading_log/brain/brain.db (schema in backend/brain.py). Content tables: nodes (type source / concept / "
+             "question / project / highlight / comment; ids like 'concept:<slug>'), edges (cites, instantiates, "
+             "relates_to, echoes, contradicts, extends, answers), domains + node_domains, highlights_full (Zotero "
+             "highlights and notes, imported from the Zotero web API by backend/brain_import.py). The user's own work: "
+             "node_confirmations, edge_confirmations, node_notes, node_renames, answers - never overwrite or delete "
+             "them unless asked. To edit, use the Brain class from the platform repo (same checks and actions_log "
+             "entry as the panel): python -c \"from backend.brain import Brain; b = Brain('<Research>/reading_log/brain/"
+             "brain.db'); print(b.create_node('concept', 'Label', 'detail'))\" - methods: graph, state, highlights(id), "
+             "context(id), create_node, create_edge(src, dst, type, label), confirm_node/confirm_edge(id, "
+             "'confirmed'|'rejected'|'pending'), set_note, rename, set_detail, set_domains, set_answer, merge(src, dst). "
+             "Read-only SQL queries are fine. Tell the user which nodes and edges you added.",
     "reading": "The Reading panel is the reading list (reading/library.json) with an in-browser PDF reader. PDFs are in "
                "reading/pdfs/<id>.pdf, highlights in reading/annotations/<id>.json, notes in "
                "literature-radar/reading-notes/<slug>.md. Never edit the block between '<!-- highlights:start' and "

@@ -627,3 +627,9 @@ button.tag { cursor: pointer; }
 }
 
 .ocr-note { margin: 0 0 6px; padding: 6px 10px; border-radius: 6px; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* Brain panel: the 3D map fills the content area under the title */
+.brain-panel { display: flex; flex-direction: column; gap: 8px; height: calc(100vh - 110px); min-height: 420px; }
+.brain-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brain-bar button { background: none; border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 4px 10px; }
+.brain-frame { flex: 1; width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #000; }

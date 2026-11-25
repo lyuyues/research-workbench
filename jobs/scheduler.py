@@ -32,7 +32,10 @@ TIMEOUT = 3 * 3600
 # name -> (title, schedule, command relative to Research, or absolute). schedule: ("daily", h, m) |
 # ("weekly", weekday 0=Mon, h, m) | ("hourly", m)
 # Add your own: "name": {"title": ..., "schedule": ("daily", 7, 0), "cmd": ["pipeline/my_job.sh"], "log": "pipeline/my_job.log"}
-JOBS: dict[str, dict] = {}
+JOBS: dict[str, dict] = {
+    "brain_import": {"title": "Brain: new Zotero highlights", "schedule": ("daily", 7, 45),
+                     "cmd": [str(Path(__file__).with_name("brain_import.sh"))], "log": "pipeline/brain_import.log"},
+}
 
 
 def last_slot(schedule: tuple, now: datetime) -> datetime:

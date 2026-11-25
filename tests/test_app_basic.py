@@ -7,7 +7,7 @@ def test_health(client):
 
 def test_panels_in_order(client):
     ids = [p["id"] for p in client.get("/api/panels").json()]
-    assert ids == ["today", "projects", "literature", "trends", "reading", "books", "audiobooks", "annotations",
+    assert ids == ["today", "projects", "literature", "trends", "reading", "books", "audiobooks", "brain", "annotations",
                    "story", "writing", "meetings", "weekly", "automation", "log"]
 
 

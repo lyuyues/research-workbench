@@ -28,6 +28,7 @@ class Settings:
     audiobook_root: Path | None = None  # ~/audiobooks (backend/audiobook.py); feed at /podcast/<token>/
     podcast_token_file: Path | None = None  # secret path segment for the podcast feed
     audiobook_python: str = "python3"  # venv with edge-tts + pymupdf, runs backend/paper_audio.py jobs
+    brain_db: Path | None = None  # Brain panel SQLite; default <research_root>/reading_log/brain/brain.db
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -61,5 +62,6 @@ class Settings:
             audiobook_root=Path(os.environ.get("RP_AUDIOBOOK_ROOT") or str(Path.home() / "audiobooks")),
             podcast_token_file=Path(os.environ.get("RP_PODCAST_TOKEN_FILE")
                                     or str(Path.home() / ".config/research-platform/podcast_token")),
+            brain_db=Path(os.environ["RP_BRAIN_DB"]) if os.environ.get("RP_BRAIN_DB") else None,
             audiobook_python=os.environ.get("RP_AUDIOBOOK_PYTHON") or str(Path.home() / "audiobooks/.venv/bin/python"),
         )

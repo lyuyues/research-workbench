@@ -9,7 +9,7 @@ export const NAV_GROUPS: { id: string; title: string; panels: string[]; labels?:
   { id: "g-projects", title: "Projects", panels: ["projects", "writing"], labels: { projects: "Overview" } },
   { id: "g-meetings", title: "Meetings", panels: ["meetings", "weekly"] },
   { id: "g-story", title: "Story canvas", panels: ["story"] },
-  { id: "g-reading", title: "Reading", panels: ["literature", "trends", "reading", "books", "audiobooks"], labels: { reading: "Papers" } },
+  { id: "g-reading", title: "Reading", panels: ["literature", "trends", "reading", "books", "audiobooks", "brain"], labels: { reading: "Papers" } },
   { id: "g-system", title: "System", panels: ["automation", "log"] },
 ];
 

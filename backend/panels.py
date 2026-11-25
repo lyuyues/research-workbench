@@ -6,6 +6,7 @@ PANELS: list[dict] = [
     {"id": "reading", "ready": True, "title": "Reading", "phase": 3},
     {"id": "books", "ready": True, "title": "Books", "phase": 3},
     {"id": "audiobooks", "ready": True, "title": "Audiobooks", "phase": 3},
+    {"id": "brain", "ready": True, "title": "Brain", "phase": 3},
     {"id": "annotations", "ready": True, "title": "Annotations", "phase": 2},
     {"id": "story", "title": "Story", "phase": 4, "ready": True},
     {"id": "writing", "ready": True, "title": "Writing", "phase": 4},

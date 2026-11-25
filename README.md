@@ -24,6 +24,7 @@ agent edits them when you ask. Every agent change is journaled in git, so you ca
 | **Story canvas** | `<project>/story/canvas.json` | An infinite board that links the paper's claims to evidence; drop in figures; the agent tags gaps and likely reviewer questions |
 | **Reading** | `reading/`, Zotero (optional) | Reading list with an in-browser PDF reader, highlights and notes |
 | **LitRadar / Trends** | `literature-radar/`, `trends/` | Weekly paper digests and a daily frontier feed (needs your own fetch jobs) |
+| **Brain** | `reading_log/brain/brain.db`, Zotero (optional) | A 3D concept map of sources, highlights, concepts and questions: confirm or reject links, take notes, answer questions, ask AI about a node (Gemini, optional); new Zotero highlights flow in on Refresh |
 | **Audiobooks** | `~/audiobooks` | PDF/EPUB books → TTS → a private podcast feed (optional) |
 | **Agent** (every page) | the whole folder | Ask, paste screenshots, let it edit files; Undo per run |
 

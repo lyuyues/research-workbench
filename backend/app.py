@@ -10,7 +10,7 @@ import time
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -19,6 +19,8 @@ from .agent import IMAGE_MAX, AgentRun, build_prompt, save_images
 from . import audiobook, bookshelf, paper_audio
 from .automation import Automation
 from .badges import Badges
+from .brain import AINotConfigured, Brain, BrainError, NotFound as BrainNotFound
+from .brain_import import ImportBusy, importer_for
 from .paper_pdf import PaperPdf
 from .overleaf import Overleaf, OverleafConflict, OverleafError, sha as overleaf_sha
 from .oplog import OpLog
@@ -1283,6 +1285,169 @@ def create_app(settings: Settings) -> FastAPI:
             runs.add(task)
             task.add_done_callback(runs.discard)
         alive = False
+
+    # ---- Brain (3D concept map; UI = static frontend/public/brain/, data = brain.db) -------------------------
+    brain = Brain(settings.brain_db or settings.research_root / "reading_log" / "brain" / "brain.db")
+    brain_job: dict = {"running": False, "last": None, "error": None}
+
+    def brain_call(fn, *args):
+        try:
+            return fn(*args)
+        except BrainNotFound as exc:
+            raise HTTPException(404, str(exc).strip("'\""))
+        except FileNotFoundError:
+            raise HTTPException(404, "brain database not found")
+        except BrainError as exc:
+            raise HTTPException(400, str(exc))
+        except AINotConfigured as exc:
+            raise HTTPException(503, str(exc))
+        except RuntimeError as exc:
+            raise HTTPException(502, str(exc)[:300])
+
+    def brain_body(raw) -> dict:
+        return raw if isinstance(raw, dict) else {}
+
+    @app.get("/api/brain/health")
+    def brain_health() -> dict:
+        return brain.health()
+
+    @app.get("/api/brain/graph")
+    def brain_graph() -> dict:
+        return brain_call(brain.graph)
+
+    @app.get("/api/brain/state")
+    def brain_state() -> dict:
+        return brain_call(brain.state)
+
+    @app.get("/api/brain/last-update")
+    def brain_last_update() -> dict:
+        return brain_call(brain.last_update)
+
+    @app.get("/api/brain/screenshots/{name}")
+    def brain_screenshot(name: str):
+        f = brain_call(brain.screenshot, name)
+        return FileResponse(f, media_type="image/png", headers={"Cache-Control": "private, max-age=86400"})
+
+    @app.get("/api/brain/nodes/{node_id:path}/highlights")
+    def brain_highlights(node_id: str) -> dict:
+        return {"highlights": brain_call(brain.highlights, node_id)}
+
+    @app.get("/api/brain/nodes/{node_id:path}/context")
+    def brain_context(node_id: str) -> dict:
+        return {"contexts": brain_call(brain.context, node_id)}
+
+    @app.get("/api/brain/nodes/{node_id:path}/discover")
+    def brain_discover(node_id: str) -> dict:
+        return {"candidates": brain_call(brain.discover, node_id)}
+
+    @app.get("/api/brain/nodes/{node_id:path}/messages")
+    def brain_messages(node_id: str) -> dict:
+        return {"messages": brain_call(brain.messages, node_id)}
+
+    @app.post("/api/brain/nodes/{node_id:path}/messages/clear")
+    def brain_clear_messages(node_id: str) -> dict:
+        brain_call(brain.clear_messages, node_id)
+        return {"ok": True}
+
+    @app.post("/api/brain/nodes/create")
+    def brain_create_node(body: dict) -> dict:
+        b = brain_body(body)
+        node = brain_call(lambda: brain.create_node(
+            b.get("type") or "concept", b.get("label") or "", b.get("detail"), b.get("weight"), b.get("domains"),
+            subtype=b.get("subtype"), author=b.get("author"), year=b.get("year"), doi=b.get("doi"), venue=b.get("venue")))
+        return {"ok": True, "node": node}
+
+    @app.post("/api/brain/nodes/{node_id:path}/merge-into")
+    def brain_merge(node_id: str, body: dict) -> dict:
+        return {"ok": True, "result": brain_call(brain.merge, node_id, brain_body(body).get("target_id") or "")}
+
+    BRAIN_NODE_OPS = {
+        "confirm": lambda nid, b: brain.confirm_node(nid, b.get("status")),
+        "note": lambda nid, b: brain.set_note(nid, b.get("text", "")),
+        "rename": lambda nid, b: brain.rename(nid, b.get("label", "")),
+        "detail": lambda nid, b: brain.set_detail(nid, b.get("text", "")),
+        "subtype": lambda nid, b: brain.set_subtype(nid, b.get("subtype")),
+        "type": lambda nid, b: brain.set_type(nid, b.get("type") or "", b.get("subtype")),
+        "domains": lambda nid, b: brain.set_domains(nid, b.get("domains", [])),
+    }
+
+    @app.post("/api/brain/state/node/{node_id:path}/{op}")
+    def brain_node_op(node_id: str, op: str, body: dict) -> dict:
+        fn = BRAIN_NODE_OPS.get(op)
+        if fn is None:
+            raise HTTPException(404, "unknown state endpoint")
+        brain_call(fn, node_id, brain_body(body))
+        return {"ok": True}
+
+    @app.post("/api/brain/state/edge/{edge_id}/confirm")
+    def brain_edge_confirm(edge_id: int, body: dict) -> dict:
+        brain_call(brain.confirm_edge, edge_id, brain_body(body).get("status"))
+        return {"ok": True}
+
+    @app.post("/api/brain/state/question/{question_id:path}/answer")
+    def brain_answer(question_id: str, body: dict) -> dict:
+        brain_call(brain.set_answer, question_id, brain_body(body).get("text", ""))
+        return {"ok": True}
+
+    @app.post("/api/brain/edges/create")
+    def brain_create_edge(body: dict) -> dict:
+        b = brain_body(body)
+        res = brain_call(brain.create_edge, b.get("source") or "", b.get("target") or "", b.get("type") or "relates_to",
+                         b.get("label"))
+        return {"ok": True, **res}
+
+    @app.post("/api/brain/edges/{edge_id}/delete")
+    def brain_delete_edge(edge_id: int) -> dict:
+        brain_call(brain.delete_edge, edge_id)
+        return {"ok": True}
+
+    @app.post("/api/brain/extract")
+    def brain_extract(body: dict) -> dict:
+        return brain_call(brain.extract, brain_body(body).get("text") or "")
+
+    @app.post("/api/brain/explain")
+    def brain_explain(body: dict):
+        b = brain_body(body)
+        if not b.get("node_id"):
+            raise HTTPException(400, "missing node_id")
+        gen = brain_call(brain.explain, str(b["node_id"]), str(b.get("question") or ""))
+        return StreamingResponse(gen, media_type="text/plain; charset=utf-8",
+                                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    def brain_import_run() -> None:
+        try:
+            imp = importer_for(brain, settings.zotero_file, log=lambda m: None)
+            if imp is None:
+                brain_job["error"] = "Zotero is not configured"
+                return
+            stats = imp.run()
+            brain_job.update(last=stats, error=None)
+            oplog.append("system", "brain import",
+                         f"+{stats['new_highlights']} highlights, +{stats['new_sources']} sources, "
+                         f"{stats['updated']} updated, {stats['removed']} removed")
+        except (ZoteroError, ImportBusy) as exc:
+            brain_job["error"] = str(exc)[:300]
+        except Exception as exc:
+            brain_job["error"] = f"{type(exc).__name__}: {exc}"[:300]
+            oplog.append("system", "brain import failed", brain_job["error"])
+        finally:
+            brain_job["running"] = False
+
+    @app.get("/api/brain/import")
+    def brain_import_status() -> dict:
+        return {"running": brain_job["running"], "error": brain_job["error"], "last": brain_call(brain.last_update),
+                "zotero_configured": load_config(settings.zotero_file) is not None}
+
+    @app.post("/api/brain/import")
+    def brain_import_start() -> dict:
+        if brain_job["running"]:
+            raise HTTPException(409, "an import is already running")
+        if load_config(settings.zotero_file) is None:
+            raise HTTPException(503, "Zotero is not configured")
+        brain_job.update(running=True, error=None)
+        oplog.append("user", "brain refresh from Zotero requested")
+        threading.Thread(target=brain_import_run, name="brain-import", daemon=True).start()
+        return {"started": True}
 
     if settings.static_dir:
         static_root = Path(settings.static_dir)

@@ -12,6 +12,7 @@ import { Projects } from "./Projects";
 import { Literature } from "./Literature";
 import { Trends } from "./Trends";
 import { Reading } from "./Reading";
+import { Brain } from "./Brain";
 import { Audiobooks } from "./Audiobooks";
 import { Meetings } from "./Meetings";
 import { Annotations } from "./Annotations";
@@ -201,6 +202,7 @@ function MainApp() {
               : current?.id === "reading" ? <Reading onAsk={ask} onPrompt={prompt} />
               : current?.id === "books" ? <Books onAsk={ask} onPrompt={prompt} />
               : current?.id === "audiobooks" ? <Audiobooks />
+              : current?.id === "brain" ? <Brain />
               : current?.id === "annotations" ? <Annotations onAsk={ask} onPrompt={prompt} />
               : current?.id === "writing" ? <Writing onAsk={ask} onPrompt={prompt} readOnly={readOnly} />
               : current?.id === "meetings" ? <Meetings onAsk={ask} onPrompt={prompt} onReply={reply} />
