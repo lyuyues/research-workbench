@@ -59,6 +59,12 @@ class ReportCommentNew(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
 
 
+class ReportNoteSave(BaseModel):
+    report: str
+    key: str
+    text: str = Field(max_length=50000)
+
+
 class ReportCommentUpdate(BaseModel):
     report: str
     id: str
